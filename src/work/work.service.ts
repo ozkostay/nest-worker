@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateWorkDto } from './dto/create-work.dto';
 import { UpdateWorkDto } from './dto/update-work.dto';
-import { Worker } from 'worker_threads';
+import { Worker } from 'node:worker_threads';
 
 @Injectable()
 export class WorkService {
@@ -9,12 +9,15 @@ export class WorkService {
   private readonly count: number = 15000000000;
 
   cicl1() {
-    let j: number = 0;
-    for (let i: number = 0; i < this.count; i++) {
-      j += i;
-    }
-    console.log('J', j);
-    return j;
+    return new Promise((resolve) => {
+      const worker = new Worker('./src/work/worker1.js');
+
+      worker.on('message', (message) => {
+        console.log(`Main thread received message: ${message}`);
+        resolve(message);
+      });
+      worker.postMessage('Hello from main thread !');
+    });
   }
 
   cicl2() {
